@@ -1,0 +1,39 @@
+name: Cron / Scheduled tasks
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    # default: run every day at 00:30 UTC (change to your preference)
+    - cron: '30 0 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile --network-concurrency 1
+
+      - name: Run cron runner
+        # This runs a lightweight runner script that you can customize.
+        run: node scripts/cron-runner.js
+        env:
+          # Provide the minimum envs your task needs via repo Secrets.
+          # Add required secrets in the repository Settings -> Secrets.
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_ID: ${{ secrets.SESSION_ID }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          RUN_SCRIPT: ${{ secrets.RUN_SCRIPT }}
